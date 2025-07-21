@@ -1,12 +1,13 @@
 {
   "name": "solana-token-price-calculator",
   "version": "1.0.0",
-  "description": "Calculate prices for 20 popular Solana tokens using on-chain data and Jupiter API",
+  "description": "Real-time price calculator for popular Solana tokens using on-chain data and DEX aggregators",
   "main": "solana_token_price_calculator.js",
   "type": "module",
   "scripts": {
     "start": "node solana_token_price_calculator.js",
-    "dev": "node --watch solana_token_price_calculator.js"
+    "dev": "node --watch solana_token_price_calculator.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "solana",
@@ -15,9 +16,12 @@
     "calculator",
     "defi",
     "raydium",
-    "jupiter"
+    "jupiter",
+    "cryptocurrency",
+    "blockchain",
+    "arbitrage"
   ],
-  "author": "Your Name",
+  "author": "Developer",
   "license": "MIT",
   "dependencies": {
     "@solana/web3.js": "^1.95.2",
@@ -28,5 +32,13 @@
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/Calculate-Token-Price.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/Calculate-Token-Price/issues"
+  },
+  "homepage": "https://github.com/yourusername/Calculate-Token-Price#readme"
 }

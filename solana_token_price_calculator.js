@@ -4,7 +4,7 @@ import { Liquidity, LIQUIDITY_STATE_LAYOUT_V4 } from "@raydium-io/raydium-sdk";
 import { getMint } from "@solana/spl-token";
 import fs from "fs/promises";
 
-// استفاده از RPC عمومی رایگان
+// Public RPC endpoints for redundancy
 const RPC_ENDPOINTS = [
   "https://api.mainnet-beta.solana.com",
   "https://solana-api.projectserum.com",
@@ -15,7 +15,6 @@ const RPC_ENDPOINTS = [
 let connection;
 let currentRpcIndex = 0;
 
-// تابع برای تغییر RPC در صورت خرابی
 function initializeConnection() {
   connection = new Connection(RPC_ENDPOINTS[currentRpcIndex], {
     commitment: 'confirmed',
@@ -23,19 +22,19 @@ function initializeConnection() {
       'Content-Type': 'application/json',
     }
   });
-  console.log(`🌐 Connected to RPC: ${RPC_ENDPOINTS[currentRpcIndex]}`);
+  console.log(`Connected to RPC: ${RPC_ENDPOINTS[currentRpcIndex]}`);
 }
 
 function switchToNextRPC() {
   currentRpcIndex = (currentRpcIndex + 1) % RPC_ENDPOINTS.length;
   initializeConnection();
-  console.log(`🔄 Switched to RPC: ${RPC_ENDPOINTS[currentRpcIndex]}`);
+  console.log(`Switched to RPC: ${RPC_ENDPOINTS[currentRpcIndex]}`);
 }
 
-// آدرس USDC برای محاسبه قیمت
+// USDC mint address for price calculations
 const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
-// نام توکن‌ها برای نمایش بهتر
+// Token name mappings for better display
 const TOKEN_NAMES = {
   "So11111111111111111111111111111111111111112": "SOL",
   "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": "USDC",
@@ -59,7 +58,7 @@ const TOKEN_NAMES = {
   "Df6yfrKC8kZE3KNkrHERKzAetSxbrWeniQfyJY4Jpump": "CHILLGUY"
 };
 
-// 20 توکن محبوب Solana با آدرس mint و pool آن‌ها
+// Popular Solana tokens to analyze
 const TOKENS = [
   { mint: "So11111111111111111111111111111111111111112", poolAddress: "" }, // SOL
   { mint: "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs", poolAddress: "" }, // WETH
@@ -80,17 +79,16 @@ const TOKENS = [
   { mint: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN", poolAddress: "" }, // JUP
   { mint: "MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5", poolAddress: "" }, // MEW
   { mint: "Df6yfrKC8kZE3KNkrHERKzAetSxbrWeniQfyJY4Jpump", poolAddress: "" }, // CHILLGUY
-  { mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", poolAddress: "" }  // USDC (برای تست)
+  { mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", poolAddress: "" }  // USDC
 ];
 
-// تابع دریافت decimal های توکن
 async function getTokenDecimals(mintAddress, retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
       const mint = await getMint(connection, new PublicKey(mintAddress));
       return mint.decimals;
     } catch (err) {
-      console.error(`❌ Error fetching decimals for ${mintAddress} (attempt ${i + 1}):`, err.message);
+      console.error(`Error fetching decimals for ${mintAddress} (attempt ${i + 1}):`, err.message);
       if (i === retries - 1) {
         if (err.message.includes('429') || err.message.includes('rate')) {
           switchToNextRPC();
@@ -102,11 +100,10 @@ async function getTokenDecimals(mintAddress, retries = 3) {
   }
 }
 
-// تابع پیدا کردن آدرس pool از API Raydium
 async function getPoolAddress(tokenA, tokenB, retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
-      console.log(`🔍 Searching pool for ${TOKEN_NAMES[tokenA] || tokenA}/${TOKEN_NAMES[tokenB] || tokenB}...`);
+      console.log(`Searching pool for ${TOKEN_NAMES[tokenA] || tokenA}/${TOKEN_NAMES[tokenB] || tokenB}...`);
       
       const res = await fetch("https://api.raydium.io/v2/main/pairs", {
         headers: {
@@ -136,20 +133,19 @@ async function getPoolAddress(tokenA, tokenB, retries = 3) {
         throw new Error(`No pool found for ${TOKEN_NAMES[tokenA] || tokenA}/${TOKEN_NAMES[tokenB] || tokenB}`);
       }
       
-      console.log(`✅ Found pool: ${pair.pool_id}`);
+      console.log(`Found pool: ${pair.pool_id}`);
       return {
         poolAddress: pair.pool_id,
         reversed: pair.token_0_mint === tokenB,
       };
     } catch (err) {
-      console.error(`❌ Error fetching pool address (attempt ${i + 1}):`, err.message);
+      console.error(`Error fetching pool address (attempt ${i + 1}):`, err.message);
       if (i === retries - 1) throw err;
       await new Promise(resolve => setTimeout(resolve, 3000 * (i + 1)));
     }
   }
 }
 
-// تابع دریافت موجودی vault
 async function getVaultBalance(vaultPubkey, retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
@@ -162,7 +158,7 @@ async function getVaultBalance(vaultPubkey, retries = 3) {
       }
       return accountInfo.data.readBigUInt64LE(64);
     } catch (err) {
-      console.error(`❌ Error fetching vault balance (attempt ${i + 1}):`, err.message);
+      console.error(`Error fetching vault balance (attempt ${i + 1}):`, err.message);
       if (i === retries - 1) {
         if (err.message.includes('429') || err.message.includes('rate')) {
           switchToNextRPC();
@@ -174,7 +170,6 @@ async function getVaultBalance(vaultPubkey, retries = 3) {
   }
 }
 
-// تابع دریافت موجودی pool
 async function getPoolBalances(poolAddress, retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
@@ -187,8 +182,8 @@ async function getPoolBalances(poolAddress, retries = 3) {
       const vaultA = poolState.baseVault;
       const vaultB = poolState.quoteVault;
 
-      console.log(`🏦 Vault A: ${vaultA.toBase58()}`);
-      console.log(`🏦 Vault B: ${vaultB.toBase58()}`);
+      console.log(`Vault A: ${vaultA.toBase58()}`);
+      console.log(`Vault B: ${vaultB.toBase58()}`);
 
       const [balanceA, balanceB] = await Promise.all([
         getVaultBalance(vaultA),
@@ -197,7 +192,7 @@ async function getPoolBalances(poolAddress, retries = 3) {
 
       return [balanceA, balanceB];
     } catch (err) {
-      console.error(`❌ Error fetching pool balances (attempt ${i + 1}):`, err.message);
+      console.error(`Error fetching pool balances (attempt ${i + 1}):`, err.message);
       if (i === retries - 1) {
         if (err.message.includes('429') || err.message.includes('rate')) {
           switchToNextRPC();
@@ -209,11 +204,10 @@ async function getPoolBalances(poolAddress, retries = 3) {
   }
 }
 
-// تابع دریافت قیمت از Jupiter (اختیاری)
 async function getJupiterPrice(inputMint, outputMint, amount, inputDecimals, outputDecimals) {
   try {
     const url = `https://quote-api.jup.ag/v6/quote?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=50`;
-    console.log(`🔗 Jupiter API URL: ${url}`);
+    console.log(`Jupiter API URL: ${url}`);
     
     const res = await fetch(url, {
       headers: { 
@@ -228,7 +222,7 @@ async function getJupiterPrice(inputMint, outputMint, amount, inputDecimals, out
     }
     
     const data = await res.json();
-    console.log(`📡 Jupiter API response for ${TOKEN_NAMES[inputMint] || inputMint}:`, JSON.stringify(data, null, 2));
+    console.log(`Jupiter API response for ${TOKEN_NAMES[inputMint] || inputMint}:`, JSON.stringify(data, null, 2));
     
     if (!data.outAmount) {
       throw new Error("Invalid Jupiter response: No outAmount found");
@@ -237,17 +231,16 @@ async function getJupiterPrice(inputMint, outputMint, amount, inputDecimals, out
     const price = Number(data.outAmount) / Math.pow(10, outputDecimals) / (amount / Math.pow(10, inputDecimals));
     return price;
   } catch (err) {
-    console.error(`❌ Jupiter price fetch error for ${TOKEN_NAMES[inputMint] || inputMint}:`, err.message);
+    console.error(`Jupiter price fetch error for ${TOKEN_NAMES[inputMint] || inputMint}:`, err.message);
     return null;
   }
 }
 
-// تابع اصلی محاسبه قیمت توکن
 async function getTokenPrice(tokenMint, poolAddress = null) {
   try {
-    console.log(`\n🚀 Processing ${TOKEN_NAMES[tokenMint] || tokenMint}...`);
+    console.log(`\nProcessing ${TOKEN_NAMES[tokenMint] || tokenMint}...`);
     
-    // اگر توکن USDC است، قیمت آن 1 دلار است
+    // USDC has a fixed price of $1
     if (tokenMint === USDC_MINT) {
       return {
         token: TOKEN_NAMES[tokenMint],
@@ -259,15 +252,15 @@ async function getTokenPrice(tokenMint, poolAddress = null) {
       };
     }
 
-    // دریافت decimal های توکن و USDC
+    // Get token and USDC decimals
     const [decimalsToken, decimalsUSDC] = await Promise.all([
       getTokenDecimals(tokenMint),
       getTokenDecimals(USDC_MINT),
     ]);
 
-    console.log(`📊 Token decimals: ${decimalsToken}, USDC decimals: ${decimalsUSDC}`);
+    console.log(`Token decimals: ${decimalsToken}, USDC decimals: ${decimalsUSDC}`);
 
-    // پیدا کردن آدرس pool
+    // Find pool address
     let finalPoolAddress = poolAddress;
     let reversed = false;
     if (!poolAddress) {
@@ -276,16 +269,16 @@ async function getTokenPrice(tokenMint, poolAddress = null) {
       reversed = poolInfo.reversed;
     }
 
-    // دریافت موجودی pool
+    // Get pool balances
     const [balA, balB] = await getPoolBalances(finalPoolAddress);
     const balanceA = Number(balA) / Math.pow(10, reversed ? decimalsUSDC : decimalsToken);
     const balanceB = Number(balB) / Math.pow(10, reversed ? decimalsToken : decimalsUSDC);
 
-    console.log(`💰 Pool Balances:`);
+    console.log(`Pool Balances:`);
     console.log(`   ${reversed ? 'USDC' : TOKEN_NAMES[tokenMint] || tokenMint}: ${balanceA.toLocaleString()}`);
     console.log(`   ${reversed ? TOKEN_NAMES[tokenMint] || tokenMint : 'USDC'}: ${balanceB.toLocaleString()}`);
 
-    // محاسبه قیمت on-chain
+    // Calculate on-chain price
     let onChainPrice = null;
     if (balanceA > 0 && balanceB > 0) {
       if (reversed) {
@@ -293,12 +286,12 @@ async function getTokenPrice(tokenMint, poolAddress = null) {
       } else {
         onChainPrice = balanceB / balanceA; // USDC / Token
       }
-      console.log(`💎 On-chain Price: 1 ${TOKEN_NAMES[tokenMint] || tokenMint} = $${onChainPrice.toFixed(6)} USDC`);
+      console.log(`On-chain Price: 1 ${TOKEN_NAMES[tokenMint] || tokenMint} = $${onChainPrice.toFixed(6)} USDC`);
     } else {
-      console.error("❌ Invalid pool balances for price calculation");
+      console.error("Invalid pool balances for price calculation");
     }
 
-    // دریافت قیمت از Jupiter
+    // Get Jupiter price
     const jupiterPrice = await getJupiterPrice(
       tokenMint,
       USDC_MINT,
@@ -308,19 +301,19 @@ async function getTokenPrice(tokenMint, poolAddress = null) {
     );
 
     if (jupiterPrice) {
-      console.log(`🪐 Jupiter Price: 1 ${TOKEN_NAMES[tokenMint] || tokenMint} = $${jupiterPrice.toFixed(6)} USDC`);
+      console.log(`Jupiter Price: 1 ${TOKEN_NAMES[tokenMint] || tokenMint} = $${jupiterPrice.toFixed(6)} USDC`);
       
-      // مقایسه قیمت‌ها
+      // Compare prices
       if (onChainPrice && jupiterPrice) {
         const difference = Math.abs(onChainPrice - jupiterPrice);
         const percentDiff = (difference / onChainPrice) * 100;
-        console.log(`📈 Price Difference: ${difference.toFixed(6)} USDC (${percentDiff.toFixed(2)}%)`);
+        console.log(`Price Difference: ${difference.toFixed(6)} USDC (${percentDiff.toFixed(2)}%)`);
       }
     } else {
-      console.log("❌ Jupiter price not available.");
+      console.log("Jupiter price not available.");
     }
 
-    // تاخیر برای جلوگیری از rate limiting
+    // Rate limiting
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     return {
@@ -336,7 +329,7 @@ async function getTokenPrice(tokenMint, poolAddress = null) {
       timestamp: new Date().toISOString(),
     };
   } catch (err) {
-    console.error(`❌ Error processing ${TOKEN_NAMES[tokenMint] || tokenMint}:`, err.message);
+    console.error(`Error processing ${TOKEN_NAMES[tokenMint] || tokenMint}:`, err.message);
     return {
       token: TOKEN_NAMES[tokenMint] || tokenMint,
       mint: tokenMint,
@@ -349,10 +342,9 @@ async function getTokenPrice(tokenMint, poolAddress = null) {
   }
 }
 
-// تابع اصلی پردازش همه توکن‌ها
 async function processTokens() {
-  console.log("🎯 Starting Solana Token Price Calculator...");
-  console.log(`📋 Processing ${TOKENS.length} tokens...\n`);
+  console.log("Starting Solana Token Price Calculator...");
+  console.log(`Processing ${TOKENS.length} tokens...\n`);
   
   const results = [];
   let successCount = 0;
@@ -362,7 +354,7 @@ async function processTokens() {
     const { mint, poolAddress } = TOKENS[i];
     
     if (!mint) {
-      console.error(`❌ Skipping token ${i + 1}: Token mint address is empty`);
+      console.error(`Skipping token ${i + 1}: Token mint address is empty`);
       results.push({
         token: "Unknown",
         mint: "",
@@ -377,7 +369,7 @@ async function processTokens() {
     }
 
     console.log(`\n${'='.repeat(60)}`);
-    console.log(`🔢 Processing Token ${i + 1}/${TOKENS.length}: ${TOKEN_NAMES[mint] || mint}`);
+    console.log(`Processing Token ${i + 1}/${TOKENS.length}: ${TOKEN_NAMES[mint] || mint}`);
     console.log(`${'='.repeat(60)}`);
     
     const result = await getTokenPrice(mint, poolAddress || null);
@@ -389,18 +381,18 @@ async function processTokens() {
       successCount++;
     }
     
-    console.log(`✅ Completed ${i + 1}/${TOKENS.length} tokens`);
+    console.log(`Completed ${i + 1}/${TOKENS.length} tokens`);
   }
 
-  // خلاصه نتایج
+  // Summary report
   console.log(`\n${'='.repeat(60)}`);
-  console.log(`📊 SUMMARY REPORT`);
+  console.log(`SUMMARY REPORT`);
   console.log(`${'='.repeat(60)}`);
-  console.log(`✅ Successful: ${successCount}/${TOKENS.length}`);
-  console.log(`❌ Failed: ${errorCount}/${TOKENS.length}`);
-  console.log(`🎯 Success Rate: ${((successCount / TOKENS.length) * 100).toFixed(1)}%`);
+  console.log(`Successful: ${successCount}/${TOKENS.length}`);
+  console.log(`Failed: ${errorCount}/${TOKENS.length}`);
+  console.log(`Success Rate: ${((successCount / TOKENS.length) * 100).toFixed(1)}%`);
 
-  // ذخیره نتایج در فایل JSON
+  // Save results to JSON files
   try {
     const outputData = {
       summary: {
@@ -414,9 +406,9 @@ async function processTokens() {
     };
     
     await fs.writeFile("token_prices.json", JSON.stringify(outputData, null, 2));
-    console.log("💾 Results saved to token_prices.json");
+    console.log("Results saved to token_prices.json");
     
-    // ذخیره خلاصه قیمت‌ها
+    // Save price summary
     const pricesSummary = results
       .filter(r => r.onChainPrice || r.jupiterPrice)
       .map(r => ({
@@ -426,33 +418,33 @@ async function processTokens() {
       }));
     
     await fs.writeFile("price_summary.json", JSON.stringify(pricesSummary, null, 2));
-    console.log("📋 Price summary saved to price_summary.json");
+    console.log("Price summary saved to price_summary.json");
     
   } catch (err) {
-    console.error("❌ Error saving files:", err.message);
+    console.error("Error saving files:", err.message);
   }
 
   return results;
 }
 
-// اجرای برنامه
+// Main execution
 (async () => {
   try {
-    // اتصال اولیه به RPC
+    // Initialize RPC connection
     initializeConnection();
     
-    console.log("🚀 Solana Token Price Calculator Started!");
-    console.log(`⏰ Started at: ${new Date().toLocaleString()}`);
+    console.log("Solana Token Price Calculator Started!");
+    console.log(`Started at: ${new Date().toLocaleString()}`);
     
     const results = await processTokens();
     
-    console.log(`\n🎉 All done! Check the generated files:`);
-    console.log(`📄 token_prices.json - Complete results with details`);
-    console.log(`📄 price_summary.json - Quick price overview`);
-    console.log(`⏰ Finished at: ${new Date().toLocaleString()}`);
+    console.log(`\nAll done! Check the generated files:`);
+    console.log(`token_prices.json - Complete results with details`);
+    console.log(`price_summary.json - Quick price overview`);
+    console.log(`Finished at: ${new Date().toLocaleString()}`);
     
   } catch (error) {
-    console.error("💥 Fatal error:", error.message);
+    console.error("Fatal error:", error.message);
     process.exit(1);
   }
 })();

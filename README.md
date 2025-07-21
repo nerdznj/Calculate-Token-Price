@@ -1,74 +1,76 @@
-# 🚀 Solana Token Price Calculator
+# Solana Token Price Calculator
 
-محاسبه‌گر قیمت توکن‌های Solana - ابزاری برای محاسبه قیمت 20 توکن محبوب در شبکه Solana
+A comprehensive tool for calculating real-time prices of popular Solana tokens using on-chain data and DEX aggregators.
 
-## 📋 ویژگی‌ها
+## Features
 
-- ✅ محاسبه قیمت 20 توکن محبوب Solana
-- 🔗 اتصال به چندین RPC عمومی (بدون نیاز به API key)
-- 💰 محاسبه قیمت از دو منبع:
-  - **On-Chain**: از طریق پول‌های نقدینگی Raydium
-  - **Jupiter API**: از طریق DEX aggregator Jupiter
-- 📊 مقایسه قیمت‌ها و محاسبه اختلاف
-- 💾 ذخیره نتایج در فایل‌های JSON
-- 🔄 سیستم Retry و تغییر خودکار RPC در صورت خرابی
-- 📈 گزارش کامل با آمار موفقیت
+- Real-time price calculation for 20 popular Solana tokens
+- Multiple RPC endpoint support for reliability
+- Dual price sources:
+  - **On-Chain**: Direct calculation from Raydium liquidity pools
+  - **Jupiter API**: Aggregated pricing from multiple DEXs
+- Price comparison and arbitrage opportunity detection
+- JSON output for data analysis
+- Automatic failover and retry mechanisms
+- Comprehensive reporting with success metrics
 
-## 🪙 توکن‌های پشتیبانی شده
+## Supported Tokens
 
-1. **SOL** - Solana Native Token
-2. **WETH** - Wrapped Ethereum
-3. **USDT** - Tether USD
-4. **mSOL** - Marinade Staked SOL
-5. **stSOL** - Lido Staked SOL
-6. **bSOL** - BlazeStake Staked SOL
-7. **jitoSOL** - Jito Staked SOL
-8. **BONK** - Bonk Inu
-9. **WIF** - Dogwifhat
-10. **BOME** - Book of Meme
-11. **POPCAT** - Popcat
-12. **W** - Wormhole Token
-13. **JLP** - Jupiter LP Token
-14. **USDCet** - USDC (Ethereum)
-15. **HNT** - Helium Network Token
-16. **RENDER** - Render Network
-17. **JUP** - Jupiter Token
-18. **MEW** - Cat in a dogs world
-19. **CHILLGUY** - Chill Guy
-20. **USDC** - USD Coin (برای مرجع قیمت)
+| Symbol | Name | Type |
+|--------|------|------|
+| SOL | Solana | Native Token |
+| WETH | Wrapped Ethereum | Bridge Token |
+| USDT | Tether USD | Stablecoin |
+| mSOL | Marinade Staked SOL | Liquid Staking |
+| stSOL | Lido Staked SOL | Liquid Staking |
+| bSOL | BlazeStake Staked SOL | Liquid Staking |
+| jitoSOL | Jito Staked SOL | Liquid Staking |
+| BONK | Bonk Inu | Meme Token |
+| WIF | Dogwifhat | Meme Token |
+| BOME | Book of Meme | Meme Token |
+| POPCAT | Popcat | Meme Token |
+| W | Wormhole Token | Infrastructure |
+| JLP | Jupiter LP Token | LP Token |
+| USDCet | USDC (Ethereum) | Bridge Token |
+| HNT | Helium Network Token | Infrastructure |
+| RENDER | Render Network | Utility Token |
+| JUP | Jupiter Token | DEX Token |
+| MEW | Cat in a dogs world | Meme Token |
+| CHILLGUY | Chill Guy | Meme Token |
+| USDC | USD Coin | Stablecoin |
 
-## 🛠 نصب و راه‌اندازی
+## Installation
 
-### پیش‌نیازها
-- Node.js 18+ 
-- npm یا yarn
+### Prerequisites
+- Node.js 18 or higher
+- npm or yarn package manager
 
-### نصب Dependencies
+### Setup
 
 ```bash
-# نصب پکیج‌ها
+# Clone the repository
+git clone https://github.com/yourusername/Calculate-Token-Price.git
+cd Calculate-Token-Price
+
+# Install dependencies
 npm install
 
-# یا با yarn
-yarn install
-```
-
-### اجرای برنامه
-
-```bash
-# اجرای برنامه
+# Run the calculator
 npm start
-
-# یا برای development
-npm run dev
 ```
 
-## 📁 فایل‌های خروجی
+## Usage
 
-پس از اجرا، دو فایل JSON ایجاد می‌شود:
+The application will automatically:
+1. Connect to Solana RPC endpoints
+2. Fetch token metadata and pool information
+3. Calculate prices from both on-chain data and Jupiter API
+4. Generate comprehensive reports
+5. Save results to JSON files
 
-### 1. `token_prices.json`
-فایل کامل با جزئیات کامل هر توکن:
+### Output Files
+
+**`token_prices.json`** - Complete results with detailed information:
 ```json
 {
   "summary": {
@@ -95,27 +97,21 @@ npm run dev
 }
 ```
 
-### 2. `price_summary.json`
-خلاصه قیمت‌ها برای مشاهده سریع:
+**`price_summary.json`** - Quick price overview:
 ```json
 [
   {
     "token": "SOL",
     "onChainPrice": "$102.450000",
     "jupiterPrice": "$102.520000"
-  },
-  {
-    "token": "BONK",
-    "onChainPrice": "$0.000025",
-    "jupiterPrice": "$0.000024"
   }
 ]
 ```
 
-## 🔧 تنظیمات
+## Configuration
 
-### تغییر RPC Endpoints
-می‌توانید لیست RPC endpoints را در فایل اصلی تغییر دهید:
+### RPC Endpoints
+The application uses multiple public RPC endpoints for redundancy:
 
 ```javascript
 const RPC_ENDPOINTS = [
@@ -126,89 +122,80 @@ const RPC_ENDPOINTS = [
 ];
 ```
 
-### اضافه کردن توکن جدید
-برای اضافه کردن توکن جدید، آن را به آرایه `TOKENS` اضافه کنید:
+### Adding New Tokens
+To add new tokens, update the `TOKENS` array in the main file:
 
 ```javascript
 const TOKENS = [
-  // ... توکن‌های موجود
   { mint: "YOUR_TOKEN_MINT_ADDRESS", poolAddress: "" }
 ];
 ```
 
-## 🚨 مدیریت خطا
+## Error Handling
 
-برنامه شامل سیستم‌های مدیریت خطای پیشرفته است:
+The application includes robust error handling:
+- **Retry Logic**: 3 attempts for each operation
+- **RPC Failover**: Automatic switching between RPC endpoints
+- **Rate Limiting**: 1.5-second delays between requests
+- **Timeout Management**: Configurable timeouts for API calls
 
-- **Retry Logic**: 3 بار تلاش مجدد برای هر عملیات
-- **RPC Switching**: تغییر خودکار RPC در صورت خرابی
-- **Rate Limiting**: تاخیر 1.5 ثانیه بین درخواست‌ها
-- **Timeout Handling**: مهلت زمانی برای درخواست‌های API
+## API Integration
 
-## 📊 نمونه خروجی
+### Raydium API
+Used for discovering liquidity pools and fetching pool metadata.
 
+### Jupiter API
+Provides aggregated pricing data from multiple DEXs for comparison.
+
+## Development
+
+### Project Structure
 ```
-🎯 Starting Solana Token Price Calculator...
-📋 Processing 20 tokens...
-
-============================================================
-🔢 Processing Token 1/20: SOL
-============================================================
-
-🚀 Processing SOL...
-📊 Token decimals: 9, USDC decimals: 6
-🔍 Searching pool for SOL/USDC...
-✅ Found pool: 58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2
-🏦 Vault A: 7YttLkHDoNj9wyDur5pM1ejNaAvT9X4eqaYcHQqtj2G5
-🏦 Vault B: 5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1
-💰 Pool Balances:
-   SOL: 1,234,567.89
-   USDC: 126,543,210.12
-💎 On-chain Price: 1 SOL = $102.450000 USDC
-🪐 Jupiter Price: 1 SOL = $102.520000 USDC
-📈 Price Difference: 0.070000 USDC (0.07%)
-✅ Completed 1/20 tokens
-
-============================================================
-📊 SUMMARY REPORT
-============================================================
-✅ Successful: 18/20
-❌ Failed: 2/20
-🎯 Success Rate: 90.0%
-💾 Results saved to token_prices.json
-📋 Price summary saved to price_summary.json
-
-🎉 All done! Check the generated files:
-📄 token_prices.json - Complete results with details
-📄 price_summary.json - Quick price overview
+├── solana_token_price_calculator.js  # Main application
+├── package.json                      # Dependencies and scripts
+├── README.md                         # Documentation
+├── token_prices.json                 # Generated results (after run)
+└── price_summary.json               # Generated summary (after run)
 ```
 
-## 🔗 منابع مفید
+### Scripts
+```bash
+npm start     # Run the calculator
+npm run dev   # Run with file watching
+```
 
-- [Solana Documentation](https://docs.solana.com/)
-- [Raydium SDK](https://github.com/raydium-io/raydium-sdk)
-- [Jupiter API](https://docs.jup.ag/)
-- [@solana/web3.js](https://github.com/solana-labs/solana-web3.js)
+## Technical Details
 
-## 📝 یادداشت‌های مهم
+### Price Calculation Methodology
+1. **On-Chain Calculation**: Reads vault balances from Raydium pools and calculates price ratios
+2. **Jupiter Aggregation**: Queries Jupiter API for best available rates across multiple DEXs
+3. **Comparison**: Analyzes price differences to identify potential arbitrage opportunities
 
-- ⚠️ این ابزار فقط برای مقاصد آموزشی و تحلیلی است
-- 💡 قیمت‌ها ممکن است با تاخیر نمایش داده شوند
-- 🔄 برای استفاده تجاری، از API key های اختصاصی استفاده کنید
-- 📊 همیشه قیمت‌ها را از چندین منبع بررسی کنید
+### Data Sources
+- **Raydium**: Primary liquidity provider on Solana
+- **Jupiter**: Leading DEX aggregator for price discovery
+- **Solana RPC**: Direct blockchain data access
 
-## 🤝 مشارکت
+## Contributing
 
-برای مشارکت در بهبود این پروژه:
-1. Fork کنید
-2. Branch جدید ایجاد کنید
-3. تغییرات خود را commit کنید
-4. Pull Request ارسال کنید
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
-## 📄 مجوز
+## License
 
-این پروژه تحت مجوز MIT منتشر شده است.
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Disclaimer
+
+This tool is for educational and analytical purposes only. Always verify prices from multiple sources before making trading decisions. The developers are not responsible for any financial losses incurred from using this software.
+
+## Support
+
+For issues and questions, please open an issue on GitHub or contact the development team.
 
 ---
 
-**⚡ ساخته شده با ❤️ برای جامعه Solana**
+Built for the Solana ecosystem with focus on accuracy and reliability.
